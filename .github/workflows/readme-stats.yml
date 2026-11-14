@@ -1,0 +1,56 @@
+name: Update README cards
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/readme-stats.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme-stats
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # fail_on_error keeps the last good cards instead of overwriting them
+      # with an error card when the GitHub API call fails.
+      # GRS_TOKEN (a PAT with repo and read:user scopes) includes private
+      # contributions; without it, only public stats are shown.
+      - name: Generate stats card
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: stats
+          options: username=${{ github.repository_owner }}&show_icons=true&count_private=true
+          path: dist/stats.svg
+          token: ${{ secrets.GRS_TOKEN || secrets.GITHUB_TOKEN }}
+          fail_on_error: true
+
+      - name: Generate top languages card
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: top-langs
+          options: username=${{ github.repository_owner }}
+          path: dist/top-langs.svg
+          token: ${{ secrets.GRS_TOKEN || secrets.GITHUB_TOKEN }}
+          fail_on_error: true
+
+      # Replace the output branch with a single commit holding only the
+      # cards, so main never receives bot commits and history never grows.
+      - name: Push cards to the output branch
+        uses: crazy-max/ghaction-github-pages@v5
+        with:
+          target_branch: output
+          build_dir: dist
+          keep_history: false
+          jekyll: false
+          commit_message: Update README cards
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

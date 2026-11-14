@@ -14,9 +14,9 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
-<a href="https://github.com/anuraghazra/github-readme-stats">
-  <img align="left" src="https://github-readme-stats.vercel.app/api?username=koichirokato&count_private=true&show_icons=true" />
+<a href="https://github.com/stats-organization/github-readme-stats-action">
+  <img align="left" src="https://raw.githubusercontent.com/koichirokato/koichirokato/output/stats.svg" alt="GitHub stats" />
 </a>
-<a href="https://github.com/anuraghazra/github-readme-stats">
-  <img align="left" src="https://github-readme-stats.vercel.app/api/top-langs/?username=koichirokato" />
+<a href="https://github.com/stats-organization/github-readme-stats-action">
+  <img align="left" src="https://raw.githubusercontent.com/koichirokato/koichirokato/output/top-langs.svg" alt="Top languages" />
 </a>
