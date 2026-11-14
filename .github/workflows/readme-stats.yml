@@ -1,0 +1,64 @@
+name: Update README cards
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/readme-stats.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme-stats
+  cancel-in-progress: true
+
+env:
+  THEME: tokyonight
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate profile summary cards
+        uses: vn7n24fzkq/github-profile-summary-cards@v0.13.0
+        with:
+          USERNAME: ${{ github.repository_owner }}
+          THEME: ${{ env.THEME }}
+          TIME_ZONE: Asia/Tokyo
+          NAME: Koichiro Kato
+          AUTO_PUSH: false
+        env:
+          # GRS_TOKEN (a PAT with repo scope) includes private repositories;
+          # without it, only public data is shown.
+          GITHUB_TOKEN: ${{ secrets.GRS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      # Skill icons come from a public service. Store a
+      # copy on the output branch so the README does not depend on it
+      # being up; a failed step stops the job and keeps the previous copy.
+      - name: Collect cards
+        run: |
+          mkdir -p dist/summary
+          cp profile-summary-card-output/"$THEME"/*.svg dist/summary/
+          curl --fail --silent --show-error --location --retry 3 \
+            -o dist/skills.svg \
+            "https://skillicons.dev/icons?i=py,cpp,rust,cmake,bash,js,java,ros,linux&theme=dark&perline=9"
+          ls -R dist
+
+      # Replace the output branch with a single commit holding only the
+      # cards, so main never receives bot commits and history never grows.
+      - name: Push cards to the output branch
+        uses: crazy-max/ghaction-github-pages@v5
+        with:
+          target_branch: output
+          build_dir: dist
+          keep_history: false
+          jekyll: false
+          commit_message: Update README cards
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
