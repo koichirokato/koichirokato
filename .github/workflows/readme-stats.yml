@@ -16,31 +16,39 @@ concurrency:
   group: readme-stats
   cancel-in-progress: true
 
+env:
+  THEME: tokyonight
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # fail_on_error keeps the last good cards instead of overwriting them
-      # with an error card when the GitHub API call fails.
-      # GRS_TOKEN (a PAT with repo and read:user scopes) includes private
-      # contributions; without it, only public stats are shown.
-      - name: Generate stats card
-        uses: stats-organization/github-readme-stats-action@v2
-        with:
-          card: stats
-          options: username=${{ github.repository_owner }}&show_icons=true&count_private=true
-          path: dist/stats.svg
-          token: ${{ secrets.GRS_TOKEN || secrets.GITHUB_TOKEN }}
-          fail_on_error: true
+      - uses: actions/checkout@v6
 
-      - name: Generate top languages card
-        uses: stats-organization/github-readme-stats-action@v2
+      - name: Generate profile summary cards
+        uses: vn7n24fzkq/github-profile-summary-cards@v0.13.0
         with:
-          card: top-langs
-          options: username=${{ github.repository_owner }}
-          path: dist/top-langs.svg
-          token: ${{ secrets.GRS_TOKEN || secrets.GITHUB_TOKEN }}
-          fail_on_error: true
+          USERNAME: ${{ github.repository_owner }}
+          THEME: ${{ env.THEME }}
+          TIME_ZONE: Asia/Tokyo
+          NAME: Koichiro Kato
+          AUTO_PUSH: false
+        env:
+          # GRS_TOKEN (a PAT with repo scope) includes private repositories;
+          # without it, only public data is shown.
+          GITHUB_TOKEN: ${{ secrets.GRS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      # Skill icons come from a public service. Store a
+      # copy on the output branch so the README does not depend on it
+      # being up; a failed step stops the job and keeps the previous copy.
+      - name: Collect cards
+        run: |
+          mkdir -p dist/summary
+          cp profile-summary-card-output/"$THEME"/*.svg dist/summary/
+          curl --fail --silent --show-error --location --retry 3 \
+            -o dist/skills.svg \
+            "https://skillicons.dev/icons?i=py,cpp,rust,cmake,bash,js,java,ros,linux&theme=dark&perline=9"
+          ls -R dist
 
       # Replace the output branch with a single commit holding only the
       # cards, so main never receives bot commits and history never grows.
